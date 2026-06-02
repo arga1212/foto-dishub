@@ -1,6 +1,14 @@
 import { useState } from 'react';
-import { Document, Page, View, Text, Image, StyleSheet, pdf } from '@react-pdf/renderer';
+import { Document, Page, View, Text, Image, StyleSheet, pdf, Font } from '@react-pdf/renderer';
 import { imageUrlToDataUrl, formatFileName } from '../utils/pdfHelpers';
+
+Font.register({
+  family: 'Montserrat',
+  fonts: [
+    { src: '/fonts/Montserrat-Bold.ttf', fontWeight: 700 },
+    { src: '/fonts/Montserrat-ExtraBold.ttf', fontWeight: 800 },
+  ],
+});
 
 const CM = 72 / 25.4 * 10; // 1cm = 28.3465pt (72dpi PDF standard)
 const CARD_W = 11.5 * CM;
@@ -35,16 +43,17 @@ const styles = StyleSheet.create({
   },
   nameSection: {
     paddingHorizontal: 0.3 * CM,
-    paddingTop: 0.35 * CM,
-    paddingBottom: 0.4 * CM,
+    paddingTop: 0.25 * CM,
+    paddingBottom: 0.45 * CM,
     alignItems: 'center',
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
     backgroundColor: '#FFFFFF',
   },
   nameText: {
-    fontSize: 22,
-    fontWeight: 'bold',
+    fontSize: 26,
+    fontWeight: 800,
+    fontFamily: 'Montserrat',
     color: '#003087',
     textTransform: 'uppercase',
     letterSpacing: 1.2,
@@ -52,6 +61,8 @@ const styles = StyleSheet.create({
   },
   locationText: {
     fontSize: 8,
+    fontWeight: 700,
+    fontFamily: 'Montserrat',
     color: '#555555',
     textTransform: 'uppercase',
     letterSpacing: 0.8,
@@ -63,7 +74,7 @@ const styles = StyleSheet.create({
 function CardDocument({ photoDataUrl, name, location }) {
   return (
     <Document>
-      <Page size={[CARD_W, CARD_H]} style={styles.page}>
+      <Page size="A5" style={styles.page}>
         <View style={styles.outline}>
           <View style={styles.photoWrapper}>
             <Image src={photoDataUrl} style={styles.photo} />

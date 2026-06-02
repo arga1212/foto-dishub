@@ -61,30 +61,30 @@ export default function LivePreview({ photo, name, location }) {
           {/* Name + Location */}
           <div
             style={{
-              padding: '0.35cm 0.3cm 0.4cm',
+              padding: '0.25cm 0.3cm 0.45cm',
               textAlign: 'center',
               borderTop: '0.04cm solid #E5E7EB',
               background: '#fff',
             }}
           >
             <div style={{
-              fontSize: '0.65cm',
+              fontSize: '0.75cm',
               fontWeight: '800',
               textTransform: 'uppercase',
               letterSpacing: '0.04cm',
               color: name ? '#003087' : '#D1D5DB',
-              fontFamily: 'Plus Jakarta Sans, sans-serif',
+              fontFamily: 'Montserrat, sans-serif',
               lineHeight: 1.2,
             }}>
               {name || 'NAMA PETUGAS'}
             </div>
             <div style={{
               fontSize: '0.28cm',
-              fontWeight: '500',
+              fontWeight: '700',
               textTransform: 'uppercase',
               letterSpacing: '0.03cm',
               color: location ? '#555555' : '#D1D5DB',
-              fontFamily: 'Plus Jakarta Sans, sans-serif',
+              fontFamily: 'Montserrat, sans-serif',
               marginTop: '0.08cm',
             }}>
               {location || 'LOKASI TUGAS'}
