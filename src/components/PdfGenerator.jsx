@@ -111,6 +111,15 @@ export default function PdfGenerator({ photo, name, location, onSuccess }) {
     // Safari iOS blocks window.open inside async/await — must open BEFORE any await
     const isSafariIOS = /iP(hone|ad|od)/.test(navigator.userAgent);
     const safariWin = isSafariIOS ? window.open('', '_blank') : null;
+    if (safariWin) {
+      safariWin.document.write(`<html><body style="font-family:sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;margin:0;background:#f0f4f8;color:#003087">
+        <div style="text-align:center;padding:2rem">
+          <div style="font-size:2rem;margin-bottom:1rem">⏳</div>
+          <p style="font-weight:700;font-size:1.1rem">Membuat PDF...</p>
+          <p style="color:#555;font-size:0.85rem;margin-top:0.5rem">Sebentar lagi PDF akan terbuka.<br>Tap <strong>Share → Save to Files</strong> untuk menyimpan.</p>
+        </div>
+      </body></html>`);
+    }
 
     try {
       const photoDataUrl = await imageUrlToDataUrl(photo);
