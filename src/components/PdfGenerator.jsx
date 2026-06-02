@@ -35,15 +35,15 @@ const styles = StyleSheet.create({
   },
   nameSection: {
     paddingHorizontal: 0.3 * CM,
-    paddingTop: 0.25 * CM,
-    paddingBottom: 0.3 * CM,
+    paddingTop: 0.35 * CM,
+    paddingBottom: 0.4 * CM,
     alignItems: 'center',
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
     backgroundColor: '#FFFFFF',
   },
   nameText: {
-    fontSize: 15,
+    fontSize: 22,
     fontWeight: 'bold',
     color: '#003087',
     textTransform: 'uppercase',

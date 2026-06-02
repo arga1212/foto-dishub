@@ -61,14 +61,14 @@ export default function LivePreview({ photo, name, location }) {
           {/* Name + Location */}
           <div
             style={{
-              padding: '0.25cm 0.3cm 0.3cm',
+              padding: '0.35cm 0.3cm 0.4cm',
               textAlign: 'center',
               borderTop: '0.04cm solid #E5E7EB',
               background: '#fff',
             }}
           >
             <div style={{
-              fontSize: '0.5cm',
+              fontSize: '0.65cm',
               fontWeight: '800',
               textTransform: 'uppercase',
               letterSpacing: '0.04cm',
