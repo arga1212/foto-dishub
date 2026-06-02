@@ -115,13 +115,20 @@ export default function PdfGenerator({ photo, name, location, onSuccess }) {
       ).toBlob();
 
       const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = formatFileName(name);
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+
+      // Safari iOS doesn't support blob download via anchor click — open in new tab
+      const isSafariIOS = /iP(hone|ad|od)/.test(navigator.userAgent);
+      if (isSafariIOS) {
+        window.open(url, '_blank');
+      } else {
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = formatFileName(name);
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
 
       // Save to localStorage (simpan foto as data URL biar bisa generate ulang)
       saveCardToStorage(photoDataUrl, name, location);

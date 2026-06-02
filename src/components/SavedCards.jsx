@@ -49,13 +49,18 @@ export default function SavedCards({ cards, onCardsChange }) {
         <CardDocument photoDataUrl={card.photo} name={card.name} location={card.location} />
       ).toBlob();
       const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = formatFileName(card.name);
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      const isSafariIOS = /iP(hone|ad|od)/.test(navigator.userAgent);
+      if (isSafariIOS) {
+        window.open(url, '_blank');
+      } else {
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = formatFileName(card.name);
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
     } catch (err) {
       console.error(err);
     } finally {
