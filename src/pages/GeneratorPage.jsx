@@ -202,7 +202,7 @@ export default function GeneratorPage() {
               )}
             </div>
             <p className="mt-2 text-xs text-gray-400 text-center">
-              Kartu <strong>11.5 × 14 cm</strong> dicetak di tengah halaman A5.
+              Kartu <strong>14 × 17 cm</strong> dicetak di tengah halaman A4.
             </p>
           </div>
         </div>

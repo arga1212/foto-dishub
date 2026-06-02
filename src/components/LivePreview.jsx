@@ -8,8 +8,8 @@ export default function LivePreview({ photo, name, location }) {
       {/* Outer cutting guide */}
       <div
         style={{
-          width: '11.5cm',
-          height: '14cm',
+          width: '14cm',
+          height: '17cm',
           border: '1px solid #000000',
           padding: '0.15cm',
           flexShrink: 0,
@@ -93,7 +93,7 @@ export default function LivePreview({ photo, name, location }) {
         </div>
       </div>
 
-      <p className="text-xs text-gray-400 font-medium">11.5 cm × 14 cm</p>
+      <p className="text-xs text-gray-400 font-medium">14 cm × 17 cm</p>
     </div>
   );
 }

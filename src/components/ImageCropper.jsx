@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import Cropper from 'react-easy-crop';
 
-const PHOTO_ASPECT = 11.5 / 12.5; // Card width / card height minus name section
+const PHOTO_ASPECT = 14 / 15.5; // Card width / card height minus name section
 
 function getCroppedImg(imageSrc, pixelCrop) {
   return new Promise((resolve, reject) => {

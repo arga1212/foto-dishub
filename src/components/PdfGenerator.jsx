@@ -11,8 +11,8 @@ Font.register({
 });
 
 const CM = 72 / 25.4 * 10; // 1cm = 28.3465pt (72dpi PDF standard)
-const CARD_W = 11.5 * CM;
-const CARD_H = 14 * CM;
+const CARD_W = 14 * CM;
+const CARD_H = 17 * CM;
 
 const styles = StyleSheet.create({
   page: {
