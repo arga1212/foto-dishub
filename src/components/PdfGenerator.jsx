@@ -79,26 +79,22 @@ function CardDocument({ photoDataUrl, name, location }) {
   );
 }
 
-export function saveCardToStorage(photo, name, location) {
-  const saved = JSON.parse(localStorage.getItem('dishub_cards') || '[]');
-  const card = {
-    id: Date.now(),
-    photo,
-    name,
-    location,
-    savedAt: new Date().toISOString(),
-  };
-  localStorage.setItem('dishub_cards', JSON.stringify([card, ...saved]));
-  return card;
-}
-
-export function getSavedCards() {
-  return JSON.parse(localStorage.getItem('dishub_cards') || '[]');
-}
-
-export function deleteCard(id) {
-  const saved = getSavedCards().filter(c => c.id !== id);
-  localStorage.setItem('dishub_cards', JSON.stringify(saved));
+// Compress to small thumbnail for in-memory storage (target ~50KB)
+export function compressForStorage(dataUrl) {
+  return new Promise((resolve) => {
+    const img = new window.Image();
+    img.onload = () => {
+      const MAX = 400;
+      const scale = Math.min(1, MAX / Math.max(img.width, img.height));
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width * scale;
+      canvas.height = img.height * scale;
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL('image/jpeg', 0.6));
+    };
+    img.onerror = () => resolve(dataUrl);
+    img.src = dataUrl;
+  });
 }
 
 export default function PdfGenerator({ photo, name, location, onSuccess }) {
@@ -108,8 +104,9 @@ export default function PdfGenerator({ photo, name, location, onSuccess }) {
     if (!photo || !name) return;
     setIsGenerating(true);
 
-    // Safari iOS blocks window.open inside async/await — must open BEFORE any await
-    const isSafariIOS = /iP(hone|ad|od)/.test(navigator.userAgent);
+    // Safari iOS: must open window BEFORE any await (blocked inside async)
+    const ua = navigator.userAgent;
+    const isSafariIOS = /iP(hone|ad|od)/.test(ua) && /WebKit/.test(ua) && !/CriOS|FxiOS|EdgiOS/.test(ua);
     const safariWin = isSafariIOS ? window.open('', '_blank') : null;
     if (safariWin) {
       safariWin.document.write(`<html><body style="font-family:sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;margin:0;background:#f0f4f8;color:#003087">
@@ -123,11 +120,16 @@ export default function PdfGenerator({ photo, name, location, onSuccess }) {
 
     try {
       const photoDataUrl = await imageUrlToDataUrl(photo);
+      const thumbDataUrl = await compressForStorage(photoDataUrl);
+
       const blob = await pdf(
         <CardDocument photoDataUrl={photoDataUrl} name={name} location={location} />
       ).toBlob();
 
       const url = URL.createObjectURL(blob);
+
+      // Call onSuccess BEFORE opening new tab (Safari switches focus away)
+      onSuccess?.({ photo: thumbDataUrl, name, location });
 
       if (isSafariIOS && safariWin) {
         safariWin.location.href = url;
@@ -140,9 +142,6 @@ export default function PdfGenerator({ photo, name, location, onSuccess }) {
         document.body.removeChild(a);
       }
       setTimeout(() => URL.revokeObjectURL(url), 10000);
-
-      saveCardToStorage(photoDataUrl, name, location);
-      onSuccess?.();
     } catch (err) {
       console.error('PDF generation error:', err);
       safariWin?.close();

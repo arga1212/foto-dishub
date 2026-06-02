@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Document, Page, View, Text, Image, StyleSheet, pdf } from '@react-pdf/renderer';
 import { formatFileName } from '../utils/pdfHelpers';
-import { deleteCard } from './PdfGenerator';
 
 const CM = 28.3465;
 const CARD_W = 11.5 * CM;
@@ -39,13 +38,14 @@ function formatDate(iso) {
   return new Date(iso).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
-export default function SavedCards({ cards, onCardsChange }) {
+export default function SavedCards({ cards, onDelete }) {
   const [loadingId, setLoadingId] = useState(null);
 
   const handleReprint = async (card) => {
     setLoadingId(card.id);
 
-    const isSafariIOS = /iP(hone|ad|od)/.test(navigator.userAgent);
+    const ua = navigator.userAgent;
+    const isSafariIOS = /iP(hone|ad|od)/.test(ua) && /WebKit/.test(ua) && !/CriOS|FxiOS|EdgiOS/.test(ua);
     const safariWin = isSafariIOS ? window.open('', '_blank') : null;
     if (safariWin) {
       safariWin.document.write(`<html><body style="font-family:sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;margin:0;background:#f0f4f8;color:#003087">
@@ -81,10 +81,7 @@ export default function SavedCards({ cards, onCardsChange }) {
     }
   };
 
-  const handleDelete = (id) => {
-    deleteCard(id);
-    onCardsChange();
-  };
+  const handleDelete = (id) => onDelete(id);
 
   if (cards.length === 0) {
     return (

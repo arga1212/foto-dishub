@@ -1,11 +1,12 @@
 import { useState, useCallback, useEffect } from 'react';
+import { saveCard, getAllCards, removeCard } from '../utils/db';
 import UploadPhoto from '../components/UploadPhoto';
 import CameraCapture from '../components/CameraCapture';
 import ImageCropper from '../components/ImageCropper';
 import NameInput from '../components/NameInput';
 import LocationInput from '../components/LocationInput';
 import LivePreview from '../components/LivePreview';
-import PdfGenerator, { getSavedCards } from '../components/PdfGenerator';
+import PdfGenerator from '../components/PdfGenerator';
 import SavedCards from '../components/SavedCards';
 
 function Toast({ message }) {
@@ -24,12 +25,10 @@ function Toast({ message }) {
   );
 }
 
-// Request camera permission on load so browser asks immediately
 async function requestCameraPermission() {
   try {
     if (!navigator.mediaDevices?.getUserMedia) return;
     if (location.protocol !== 'https:' && location.hostname !== 'localhost') return;
-    // Check if already granted — don't re-ask if already decided
     if (navigator.permissions) {
       const status = await navigator.permissions.query({ name: 'camera' });
       if (status.state === 'granted' || status.state === 'denied') return;
@@ -37,7 +36,7 @@ async function requestCameraPermission() {
     const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
     stream.getTracks().forEach(t => t.stop());
   } catch {
-    // silently ignore — user denied or not supported
+    // silently ignore
   }
 }
 
@@ -50,7 +49,11 @@ export default function GeneratorPage() {
   const [showCropper, setShowCropper] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastMsg, setToastMsg] = useState('');
-  const [savedCards, setSavedCards] = useState(() => getSavedCards());
+  const [savedCards, setSavedCards] = useState([]);
+
+  useEffect(() => {
+    getAllCards().then(setSavedCards).catch(() => {});
+  }, []);
   const [showSaved, setShowSaved] = useState(false);
   const [showPreview, setShowPreview] = useState(true);
 
@@ -60,15 +63,19 @@ export default function GeneratorPage() {
   const handleCameraCapture = useCallback((src) => { setShowCamera(false); setRawImage(src); setShowCropper(true); }, []);
   const handleCropComplete = useCallback((src) => { setCroppedImage(src); setShowCropper(false); setRawImage(null); }, []);
   const handleCropCancel = useCallback(() => { setShowCropper(false); setRawImage(null); }, []);
-  const refreshSaved = useCallback(() => setSavedCards(getSavedCards()), []);
-
+  const handleDelete = useCallback(async (id) => {
+    await removeCard(id).catch(() => {});
+    setSavedCards(prev => prev.filter(c => c.id !== id));
+  }, []);
   const handleReset = () => { setRawImage(null); setCroppedImage(null); setName(''); setLocation(''); };
 
-  const handlePdfSuccess = () => {
+  const handlePdfSuccess = ({ photo, name: cardName, location: cardLocation }) => {
+    const card = { id: Date.now(), photo, name: cardName, location: cardLocation, savedAt: new Date().toISOString() };
+    saveCard(card).catch(() => {});
+    setSavedCards(prev => [card, ...prev]);
     setToastMsg('PDF berhasil diunduh & disimpan!');
     setShowToast(true);
     setTimeout(() => setShowToast(false), 3500);
-    refreshSaved();
   };
 
   return (
@@ -87,7 +94,6 @@ export default function GeneratorPage() {
               <p className="text-blue-200 text-xs">Photo Card Generator</p>
             </div>
           </div>
-          {/* Saved cards toggle button (mobile) */}
           <button
             onClick={() => setShowSaved(s => !s)}
             className="flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-full transition-all"
@@ -101,9 +107,9 @@ export default function GeneratorPage() {
         </div>
       </header>
 
-      {/* Saved cards drawer (mobile: slide from top, desktop: sidebar) */}
+      {/* Mobile saved cards drawer */}
       {showSaved && (
-        <div className="xl:hidden mx-4 mt-4 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="lg:hidden mx-4 mt-4 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between" style={{ background: '#FAFBFC' }}>
             <div>
               <h2 className="text-sm font-bold text-gray-800">Kartu Tersimpan</h2>
@@ -115,21 +121,21 @@ export default function GeneratorPage() {
               </svg>
             </button>
           </div>
-          <SavedCards cards={savedCards} onCardsChange={refreshSaved} />
+          <SavedCards cards={savedCards} onDelete={handleDelete} />
         </div>
       )}
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-8">
-        <div className="flex flex-col xl:flex-row gap-6 xl:gap-8 items-start">
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start">
 
-          {/* Desktop saved cards sidebar */}
-          <div className="hidden xl:block w-64 flex-shrink-0">
+          {/* Desktop sidebar - visible from lg, not just xl */}
+          <div className="hidden lg:block w-64 flex-shrink-0">
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
               <div className="px-4 py-3 border-b border-gray-100" style={{ background: '#FAFBFC' }}>
                 <h2 className="text-sm font-bold text-gray-800">Kartu Tersimpan</h2>
                 <p className="text-xs text-gray-500 mt-0.5">{savedCards.length} kartu</p>
               </div>
-              <SavedCards cards={savedCards} onCardsChange={refreshSaved} />
+              <SavedCards cards={savedCards} onDelete={handleDelete} />
             </div>
           </div>
 
@@ -140,9 +146,7 @@ export default function GeneratorPage() {
                 <h2 className="text-sm font-bold text-gray-800">Panel Pengaturan</h2>
                 <p className="text-xs text-gray-500 mt-0.5">Isi data petugas parkir</p>
               </div>
-
               <div className="p-5 space-y-5">
-                {/* Photo thumbnail */}
                 {croppedImage && (
                   <div className="rounded-xl overflow-hidden border border-gray-100 relative group">
                     <img src={croppedImage} alt="Preview foto" className="w-full h-32 object-cover" />
@@ -160,8 +164,6 @@ export default function GeneratorPage() {
                     </div>
                   </div>
                 )}
-
-                {/* Upload + Camera */}
                 <div className="space-y-2">
                   <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
                     {croppedImage ? 'Ganti Foto' : 'Tambah Foto'}
@@ -181,12 +183,10 @@ export default function GeneratorPage() {
                     </button>
                   </div>
                 </div>
-
                 <div className="border-t border-gray-100" />
                 <NameInput value={name} onChange={setName} />
                 <LocationInput value={location} onChange={setLocation} />
                 <div className="border-t border-gray-100" />
-
                 <div className="space-y-2">
                   <PdfGenerator photo={croppedImage} name={name} location={location} onSuccess={handlePdfSuccess} />
                   <button
@@ -199,7 +199,6 @@ export default function GeneratorPage() {
                     Reset Form
                   </button>
                 </div>
-
                 {(!croppedImage || !name) && (
                   <div className="rounded-xl p-3 border border-amber-100" style={{ background: '#FFFBEB' }}>
                     <p className="text-xs font-semibold text-amber-700 mb-1.5">Diperlukan:</p>
@@ -224,7 +223,6 @@ export default function GeneratorPage() {
           {/* Live Preview */}
           <div className="flex-1 w-full">
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-              {/* Collapsible header */}
               <button
                 onClick={() => setShowPreview(s => !s)}
                 className="w-full px-5 py-4 flex items-center justify-between"
@@ -240,22 +238,15 @@ export default function GeneratorPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
-
               {showPreview && (
                 <div className="px-4 pb-5 overflow-auto">
-                  {/* Scale down on mobile so card fits screen */}
-                  <div
-                    className="flex justify-center"
-                    style={{ transformOrigin: 'top center' }}
-                  >
-                    <div style={{
-                      transform: 'scale(var(--preview-scale, 1))',
-                      transformOrigin: 'top center',
-                    }}
+                  <div className="flex justify-center">
+                    <div
+                      style={{ transform: 'scale(var(--preview-scale, 1))', transformOrigin: 'top center' }}
                       ref={el => {
                         if (!el) return;
                         const containerW = el.parentElement.offsetWidth - 32;
-                        const cardW = 11.5 * 37.8; // 11.5cm in px at 96dpi
+                        const cardW = 11.5 * 37.8;
                         const scale = Math.min(1, containerW / cardW);
                         el.style.setProperty('--preview-scale', scale);
                         el.style.marginBottom = `${-(el.scrollHeight * (1 - scale))}px`;
