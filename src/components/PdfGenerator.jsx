@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Document, Page, View, Text, Image, StyleSheet, pdf } from '@react-pdf/renderer';
 import { imageUrlToDataUrl, formatFileName } from '../utils/pdfHelpers';
 
-const CM = 28.3465;
+const CM = 72 / 25.4 * 10; // 1cm = 28.3465pt (72dpi PDF standard)
 const CARD_W = 11.5 * CM;
 const CARD_H = 14 * CM;
 
@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
 function CardDocument({ photoDataUrl, name, location }) {
   return (
     <Document>
-      <Page size="A5" style={styles.page}>
+      <Page size={[CARD_W, CARD_H]} style={styles.page}>
         <View style={styles.outline}>
           <View style={styles.photoWrapper}>
             <Image src={photoDataUrl} style={styles.photo} />
