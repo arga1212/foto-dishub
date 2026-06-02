@@ -16,9 +16,9 @@ const styles = StyleSheet.create({
   outline: {
     width: CARD_W,
     height: CARD_H,
-    borderWidth: 0.5,
-    borderColor: '#AAAAAA',
-    borderStyle: 'dashed',
+    borderWidth: 3,
+    borderColor: '#000000',
+    borderStyle: 'solid',
     flexDirection: 'column',
     overflow: 'hidden',
   },

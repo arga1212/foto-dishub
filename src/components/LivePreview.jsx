@@ -10,7 +10,7 @@ export default function LivePreview({ photo, name, location }) {
         style={{
           width: '11.5cm',
           height: '14cm',
-          border: '1px dashed #9CA3AF',
+          border: '3px solid #000000',
           padding: '0.15cm',
           flexShrink: 0,
           boxSizing: 'border-box',
