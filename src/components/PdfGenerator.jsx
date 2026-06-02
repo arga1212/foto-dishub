@@ -107,19 +107,21 @@ export default function PdfGenerator({ photo, name, location, onSuccess }) {
   const handleGenerate = async () => {
     if (!photo || !name) return;
     setIsGenerating(true);
+
+    // Safari iOS blocks window.open inside async/await — must open BEFORE any await
+    const isSafariIOS = /iP(hone|ad|od)/.test(navigator.userAgent);
+    const safariWin = isSafariIOS ? window.open('', '_blank') : null;
+
     try {
       const photoDataUrl = await imageUrlToDataUrl(photo);
-
       const blob = await pdf(
         <CardDocument photoDataUrl={photoDataUrl} name={name} location={location} />
       ).toBlob();
 
       const url = URL.createObjectURL(blob);
 
-      // Safari iOS doesn't support blob download via anchor click — open in new tab
-      const isSafariIOS = /iP(hone|ad|od)/.test(navigator.userAgent);
-      if (isSafariIOS) {
-        window.open(url, '_blank');
+      if (isSafariIOS && safariWin) {
+        safariWin.location.href = url;
       } else {
         const a = document.createElement('a');
         a.href = url;
@@ -130,12 +132,11 @@ export default function PdfGenerator({ photo, name, location, onSuccess }) {
       }
       setTimeout(() => URL.revokeObjectURL(url), 10000);
 
-      // Save to localStorage (simpan foto as data URL biar bisa generate ulang)
       saveCardToStorage(photoDataUrl, name, location);
-
       onSuccess?.();
     } catch (err) {
       console.error('PDF generation error:', err);
+      safariWin?.close();
     } finally {
       setIsGenerating(false);
     }

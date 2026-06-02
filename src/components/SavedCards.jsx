@@ -44,14 +44,17 @@ export default function SavedCards({ cards, onCardsChange }) {
 
   const handleReprint = async (card) => {
     setLoadingId(card.id);
+
+    const isSafariIOS = /iP(hone|ad|od)/.test(navigator.userAgent);
+    const safariWin = isSafariIOS ? window.open('', '_blank') : null;
+
     try {
       const blob = await pdf(
         <CardDocument photoDataUrl={card.photo} name={card.name} location={card.location} />
       ).toBlob();
       const url = URL.createObjectURL(blob);
-      const isSafariIOS = /iP(hone|ad|od)/.test(navigator.userAgent);
-      if (isSafariIOS) {
-        window.open(url, '_blank');
+      if (isSafariIOS && safariWin) {
+        safariWin.location.href = url;
       } else {
         const a = document.createElement('a');
         a.href = url;
@@ -63,6 +66,7 @@ export default function SavedCards({ cards, onCardsChange }) {
       setTimeout(() => URL.revokeObjectURL(url), 10000);
     } catch (err) {
       console.error(err);
+      safariWin?.close();
     } finally {
       setLoadingId(null);
     }
