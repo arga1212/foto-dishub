@@ -113,7 +113,7 @@ export default function CameraCapture({ onCapture, onClose }) {
         </div>
 
         {/* Camera View */}
-        <div className="relative bg-black" style={{ height: '360px' }}>
+        <div className="relative bg-black" style={{ aspectRatio: '11.5 / 12.5', maxHeight: '70vh' }}>
           {error ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6 gap-3">
               <svg className="w-12 h-12 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">

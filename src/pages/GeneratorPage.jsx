@@ -1,5 +1,4 @@
 import { useState, useCallback, useEffect } from 'react';
-import { saveCard, getAllCards, removeCard } from '../utils/db';
 import UploadPhoto from '../components/UploadPhoto';
 import CameraCapture from '../components/CameraCapture';
 import ImageCropper from '../components/ImageCropper';
@@ -7,7 +6,6 @@ import NameInput from '../components/NameInput';
 import LocationInput from '../components/LocationInput';
 import LivePreview from '../components/LivePreview';
 import PdfGenerator from '../components/PdfGenerator';
-import SavedCards from '../components/SavedCards';
 
 function Toast({ message }) {
   return (
@@ -48,13 +46,6 @@ export default function GeneratorPage() {
   const [showCamera, setShowCamera] = useState(false);
   const [showCropper, setShowCropper] = useState(false);
   const [showToast, setShowToast] = useState(false);
-  const [toastMsg, setToastMsg] = useState('');
-  const [savedCards, setSavedCards] = useState([]);
-
-  useEffect(() => {
-    getAllCards().then(setSavedCards).catch(() => {});
-  }, []);
-  const [showSaved, setShowSaved] = useState(false);
   const [showPreview, setShowPreview] = useState(true);
 
   useEffect(() => { requestCameraPermission(); }, []);
@@ -63,26 +54,17 @@ export default function GeneratorPage() {
   const handleCameraCapture = useCallback((src) => { setShowCamera(false); setRawImage(src); setShowCropper(true); }, []);
   const handleCropComplete = useCallback((src) => { setCroppedImage(src); setShowCropper(false); setRawImage(null); }, []);
   const handleCropCancel = useCallback(() => { setShowCropper(false); setRawImage(null); }, []);
-  const handleDelete = useCallback(async (id) => {
-    await removeCard(id).catch(() => {});
-    setSavedCards(prev => prev.filter(c => c.id !== id));
-  }, []);
   const handleReset = () => { setRawImage(null); setCroppedImage(null); setName(''); setLocation(''); };
 
-  const handlePdfSuccess = ({ photo, name: cardName, location: cardLocation }) => {
-    const card = { id: Date.now(), photo, name: cardName, location: cardLocation, savedAt: new Date().toISOString() };
-    saveCard(card).catch(() => {});
-    setSavedCards(prev => [card, ...prev]);
-    setToastMsg('PDF berhasil diunduh & disimpan!');
+  const handlePdfSuccess = () => {
     setShowToast(true);
     setTimeout(() => setShowToast(false), 3500);
   };
 
   return (
     <div className="min-h-screen" style={{ background: 'linear-gradient(135deg, #EEF2FF 0%, #F0F4F8 50%, #EDF2F7 100%)' }}>
-      {/* Header */}
       <header className="sticky top-0 z-40 shadow-sm" style={{ background: '#003087' }}>
-        <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 h-14 flex items-center">
           <div className="flex items-center gap-3">
             <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center">
               <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -94,53 +76,14 @@ export default function GeneratorPage() {
               <p className="text-blue-200 text-xs">Photo Card Generator</p>
             </div>
           </div>
-          <button
-            onClick={() => setShowSaved(s => !s)}
-            className="flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-full transition-all"
-            style={{ background: showSaved ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.15)', color: 'white' }}
-          >
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-            </svg>
-            Tersimpan {savedCards.length > 0 && `(${savedCards.length})`}
-          </button>
         </div>
       </header>
-
-      {/* Mobile saved cards drawer */}
-      {showSaved && (
-        <div className="lg:hidden mx-4 mt-4 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between" style={{ background: '#FAFBFC' }}>
-            <div>
-              <h2 className="text-sm font-bold text-gray-800">Kartu Tersimpan</h2>
-              <p className="text-xs text-gray-500 mt-0.5">{savedCards.length} kartu</p>
-            </div>
-            <button onClick={() => setShowSaved(false)} className="p-1.5 rounded-lg hover:bg-gray-100">
-              <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-          <SavedCards cards={savedCards} onDelete={handleDelete} />
-        </div>
-      )}
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-8">
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start">
 
-          {/* Desktop sidebar - visible from lg, not just xl */}
-          <div className="hidden lg:block w-64 flex-shrink-0">
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-              <div className="px-4 py-3 border-b border-gray-100" style={{ background: '#FAFBFC' }}>
-                <h2 className="text-sm font-bold text-gray-800">Kartu Tersimpan</h2>
-                <p className="text-xs text-gray-500 mt-0.5">{savedCards.length} kartu</p>
-              </div>
-              <SavedCards cards={savedCards} onDelete={handleDelete} />
-            </div>
-          </div>
-
           {/* Form panel */}
-          <div className="w-full xl:w-80 flex-shrink-0">
+          <div className="w-full lg:w-80 flex-shrink-0">
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
               <div className="px-5 py-4 border-b border-gray-100" style={{ background: '#FAFBFC' }}>
                 <h2 className="text-sm font-bold text-gray-800">Panel Pengaturan</h2>
@@ -267,7 +210,7 @@ export default function GeneratorPage() {
 
       {showCamera && <CameraCapture onCapture={handleCameraCapture} onClose={() => setShowCamera(false)} />}
       {showCropper && rawImage && <ImageCropper imageSrc={rawImage} onCropComplete={handleCropComplete} onCancel={handleCropCancel} />}
-      {showToast && <Toast message={toastMsg} />}
+      {showToast && <Toast message="PDF berhasil diunduh!" />}
     </div>
   );
 }

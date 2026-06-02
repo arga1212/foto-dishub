@@ -1,11 +1,12 @@
 import { useState, useCallback } from 'react';
 import Cropper from 'react-easy-crop';
 
-const PHOTO_ASPECT = 10 / 16; // 10cm wide, 16cm tall
+const PHOTO_ASPECT = 11.5 / 12.5; // Card width / card height minus name section
 
 function getCroppedImg(imageSrc, pixelCrop) {
   return new Promise((resolve, reject) => {
     const image = new Image();
+    image.crossOrigin = 'anonymous';
     image.addEventListener('load', () => {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
