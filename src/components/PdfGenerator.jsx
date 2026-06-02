@@ -24,7 +24,7 @@ const styles = StyleSheet.create({
   outline: {
     width: CARD_W,
     height: CARD_H,
-    borderWidth: 3,
+    borderWidth: 1,
     borderColor: '#000000',
     borderStyle: 'solid',
     flexDirection: 'column',
