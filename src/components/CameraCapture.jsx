@@ -149,9 +149,15 @@ export default function CameraCapture({ onCapture, onClose }) {
                 playsInline
                 muted
               />
-              {/* Guide overlay */}
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div className="border-2 border-white/50 rounded-full w-40 h-52 opacity-60" />
+              {/* Guide overlay - oval wajah lebih kecil, posisi agak atas */}
+              <div className="absolute inset-0 pointer-events-none" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'center', paddingTop: '12%' }}>
+                <div style={{
+                  width: '52%',
+                  aspectRatio: '3 / 4',
+                  border: '2px solid rgba(255,255,255,0.6)',
+                  borderRadius: '50%',
+                  boxShadow: '0 0 0 9999px rgba(0,0,0,0.35)',
+                }} />
               </div>
               {!isReady && (
                 <div className="absolute inset-0 flex items-center justify-center">
